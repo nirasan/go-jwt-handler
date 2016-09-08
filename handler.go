@@ -1,27 +1,28 @@
-package go_jwt_handler
+package jwthandler
 
 import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 var (
-	AuthenticationError = errors.New("AuthenticationError")
-	AuthorizationError  = errors.New("AuthorizationError")
+	ErrAuthentication = errors.New("ErrAuthentication")
+	ErrAuthorization  = errors.New("ErrAuthorization")
 )
 
 var (
-	rsaPrivateKeyCache   map[string]*rsa.PrivateKey   = make(map[string]*rsa.PrivateKey)
-	rsaPublicKeyCache    map[string]*rsa.PublicKey    = make(map[string]*rsa.PublicKey)
-	ecdsaPrivateKeyCache map[string]*ecdsa.PrivateKey = make(map[string]*ecdsa.PrivateKey)
-	ecdsaPublicKeyCache  map[string]*ecdsa.PublicKey  = make(map[string]*ecdsa.PublicKey)
+	rsaPrivateKeyCache   = make(map[string]*rsa.PrivateKey)
+	rsaPublicKeyCache    = make(map[string]*rsa.PublicKey)
+	ecdsaPrivateKeyCache = make(map[string]*ecdsa.PrivateKey)
+	ecdsaPublicKeyCache  = make(map[string]*ecdsa.PublicKey)
 )
 
 type LoginDataGetter func(r *http.Request) (string, string)
@@ -56,11 +57,11 @@ func New(o Option) (*JwtHandler, error) {
 
 	method := jwt.GetSigningMethod(o.SigningAlgorithm)
 	if method == nil {
-		return nil, errors.New("invalid signing algorithm.")
+		return nil, errors.New("invalid signing algorithm")
 	}
 
 	if o.Authenticator == nil {
-		return nil, errors.New("Authenticator required.")
+		return nil, errors.New("Authenticator required")
 	}
 
 	h := &JwtHandler{
@@ -87,7 +88,7 @@ func New(o Option) (*JwtHandler, error) {
 	switch {
 	case h.IsHmac():
 		if o.HmacKey == nil {
-			return nil, errors.New("hash key must required.")
+			return nil, errors.New("hash key must required")
 		}
 		h.HmacKey = o.HmacKey
 	case h.IsRsa():
@@ -171,12 +172,12 @@ func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 		username, password := h.LoginDataGetter(r)
 
 		if !h.Authenticator(username, password) {
-			h.ErrorHandler(w, r, AuthenticationError)
+			h.ErrorHandler(w, r, ErrAuthentication)
 			return
 		}
 
 		token := jwt.NewWithClaims(h.SigningMethod, jwt.MapClaims{
-			"aud": username,
+			"sub": username,
 			"exp": time.Now().Add(h.Timeout).Unix(),
 		})
 
@@ -207,11 +208,11 @@ func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 
 		token, err := h.parseToken(r)
 		if err != nil {
-			h.ErrorHandler(w, r, AuthorizationError)
+			h.ErrorHandler(w, r, ErrAuthorization)
 		}
 
 		if _, ok := token.Claims.(jwt.MapClaims); !ok || !token.Valid {
-			h.ErrorHandler(w, r, AuthorizationError)
+			h.ErrorHandler(w, r, ErrAuthorization)
 		}
 
 		ctx := r.Context()
@@ -224,8 +225,8 @@ func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 type key int
 
 var (
-	signedTokenKey key = 0
-	tokenKey       key = 1
+	signedTokenKey key = 1
+	tokenKey       key = 2
 )
 
 func SignedTokenFromContext(ctx context.Context) (string, bool) {

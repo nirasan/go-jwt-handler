@@ -1,12 +1,12 @@
-package go_jwt_handler
+package jwthandler
 
 import (
-	"testing"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"log"
-	"fmt"
+	"testing"
 )
 
 func TestJwtHandler_AuthenticationHandler(t *testing.T) {
@@ -15,21 +15,23 @@ func TestJwtHandler_AuthenticationHandler(t *testing.T) {
 	loginDataGetter := func(r *http.Request) (string, string) { return r.URL.Query().Get("user"), r.URL.Query().Get("pass") }
 
 	options := []Option{
-		Option{ SigningAlgorithm: "HS256", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "HS384", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "HS512", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "RS256", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "RS384", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "RS512", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "PS256", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "PS384", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "PS512", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "ES256", PrivateKeyPath: "test/ec256-private.pem", PublicKeyPath: "test/ec256-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "ES384", PrivateKeyPath: "test/ec384-private.pem", PublicKeyPath: "test/ec384-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
-		Option{ SigningAlgorithm: "ES512", PrivateKeyPath: "test/ec512-private.pem", PublicKeyPath: "test/ec512-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter },
+		Option{SigningAlgorithm: "HS256", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "HS384", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "HS512", HmacKey: hmacKey, Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "RS256", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "RS384", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "RS512", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "PS256", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "PS384", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "PS512", PrivateKeyPath: "test/sample_key", PublicKeyPath: "test/sample_key.pub", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "ES256", PrivateKeyPath: "test/ec256-private.pem", PublicKeyPath: "test/ec256-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "ES384", PrivateKeyPath: "test/ec384-private.pem", PublicKeyPath: "test/ec384-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
+		Option{SigningAlgorithm: "ES512", PrivateKeyPath: "test/ec512-private.pem", PublicKeyPath: "test/ec512-public.pem", Authenticator: authenticator, LoginDataGetter: loginDataGetter},
 	}
 
 	for _, option := range options {
+		log.Println(option)
+
 		h, err := New(option)
 		if err != nil {
 			t.Fatal(err)
@@ -64,6 +66,16 @@ func TestJwtHandler_AuthenticationHandler(t *testing.T) {
 
 		// invalid username and password
 		res, err = http.Get(ts.URL + "?user=user&pass=user")
+		if err != nil {
+			t.Fatal(err)
+		} else {
+			if res.StatusCode != http.StatusUnauthorized {
+				t.Fatal("Status must 401")
+			}
+		}
+
+		// invalid parameters
+		res, err = http.Get(ts.URL + "?username=user&password=user")
 		if err != nil {
 			t.Fatal(err)
 		} else {
