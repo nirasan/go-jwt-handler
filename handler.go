@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	ErrAuthentication = errors.New("ErrAuthentication")
-	ErrAuthorization  = errors.New("ErrAuthorization")
+	ErrAuthentication = errors.New("Authentication Error")
+	ErrAuthorization  = errors.New("Authorization Error")
 )
 
 var (
@@ -176,22 +176,7 @@ func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		token := jwt.NewWithClaims(h.SigningMethod, jwt.MapClaims{
-			"sub": username,
-			"exp": time.Now().Add(h.Timeout).Unix(),
-		})
-
-		var key interface{}
-		switch {
-		case h.IsHmac():
-			key = h.HmacKey
-		case h.IsRsa():
-			key = h.RsaPrivateKey
-		case h.IsEcdsa():
-			key = h.EcdsaPrivateKey
-		}
-
-		tokenString, err := token.SignedString(key)
+		tokenString, err := h.createSignedToken(h.createToken(username))
 		if err != nil {
 			h.ErrorHandler(w, r, err)
 		}
@@ -248,7 +233,36 @@ func readFile(path string) ([]byte, error) {
 }
 
 func loginDataGetter(r *http.Request) (string, string) {
-	return r.URL.Query().Get("username"), r.URL.Query().Get("password")
+	q := r.URL.Query()
+	return q.Get("username"), q.Get("password")
+}
+
+func (h *JwtHandler) createToken(username string) *jwt.Token {
+
+	return jwt.NewWithClaims(h.SigningMethod, jwt.MapClaims{
+		"sub": username,
+		"exp": time.Now().Add(h.Timeout).Unix(),
+	})
+}
+
+func (h *JwtHandler) createSignedToken(token *jwt.Token) (string, error) {
+
+	var key interface{}
+	switch {
+	case h.IsHmac():
+		key = h.HmacKey
+	case h.IsRsa():
+		key = h.RsaPrivateKey
+	case h.IsEcdsa():
+		key = h.EcdsaPrivateKey
+	}
+
+	tokenString, err := token.SignedString(key)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, err
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
