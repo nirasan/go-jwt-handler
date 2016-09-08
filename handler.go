@@ -14,8 +14,10 @@ import (
 )
 
 var (
+	// ErrAuthentication is Error for Authentication failed.
 	ErrAuthentication = errors.New("Authentication Error")
-	ErrAuthorization  = errors.New("Authorization Error")
+	// ErrAuthorization is Error for Authorization failed.
+	ErrAuthorization = errors.New("Authorization Error")
 )
 
 var (
@@ -25,10 +27,16 @@ var (
 	ecdsaPublicKeyCache  = make(map[string]*ecdsa.PublicKey)
 )
 
+// LoginDataGetter is user defined function getting username and password
 type LoginDataGetter func(r *http.Request) (string, string)
+
+// Authenticator is user defined function validating username and password
 type Authenticator func(string, string) bool
+
+// ErrorHandler is user defined function handling response when error occurred
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
+// JwtHandler is JSON Web Token handler
 type JwtHandler struct {
 	SigningMethod   jwt.SigningMethod
 	Timeout         time.Duration
@@ -42,17 +50,29 @@ type JwtHandler struct {
 	ErrorHandler    ErrorHandler
 }
 
+// Option is JwtHandler constructor option
 type Option struct {
+	// signing algorithm.
+	// possible values are HS256, HS384, HS512, RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512.
 	SigningAlgorithm string
-	Timeout          time.Duration
-	HmacKey          []byte
-	PrivateKeyPath   string
-	PublicKeyPath    string
-	LoginDataGetter  LoginDataGetter
-	Authenticator    Authenticator
-	ErrorHandler     ErrorHandler
+	// Duration that a jwt token is valid. Optional, defaults to one hour.
+	Timeout time.Duration
+	// key for HMAC SHA algorithm.
+	HmacKey []byte
+	// private key file path for RSA, RSA-PSS, ECDSA algorithm.
+	PrivateKeyPath string
+	// public key file path for RSA, RSA-PSS, ECDSA algorithm.
+	PublicKeyPath string
+	// callback function username and password getter.
+	LoginDataGetter LoginDataGetter
+	// callback function username and password validator.
+	// return true if username and password is valid, and return false if invalid.
+	Authenticator Authenticator
+	// callback function when error occurred handler.
+	ErrorHandler ErrorHandler
 }
 
+// New is JwtHandler Constructor.
 func New(o Option) (*JwtHandler, error) {
 
 	method := jwt.GetSigningMethod(o.SigningAlgorithm)
@@ -84,7 +104,6 @@ func New(o Option) (*JwtHandler, error) {
 		h.Timeout = time.Hour * 1
 	}
 
-	// method.Alg() pattern is {HS,RS,PS,ES}{256,384,512}
 	switch {
 	case h.IsHmac():
 		if o.HmacKey == nil {
@@ -150,22 +169,28 @@ func New(o Option) (*JwtHandler, error) {
 	return h, nil
 }
 
+// IsHmac decide algorithm is HMAC SHA or not.
 func (h *JwtHandler) IsHmac() bool {
-	return h.SigningMethodPrefix() == "HS"
+	return h.signingMethodPrefix() == "HS"
 }
 
+// IsRsa decide algorithm is (RSA || RSA-PSS) or not.
 func (h *JwtHandler) IsRsa() bool {
-	return h.SigningMethodPrefix() == "RS" || h.SigningMethodPrefix() == "PS"
+	return h.signingMethodPrefix() == "RS" || h.signingMethodPrefix() == "PS"
 }
 
+// IsEcdsa decide algorithm is ECDSA or not.
 func (h *JwtHandler) IsEcdsa() bool {
-	return h.SigningMethodPrefix() == "ES"
+	return h.signingMethodPrefix() == "ES"
 }
 
-func (h *JwtHandler) SigningMethodPrefix() string {
+func (h *JwtHandler) signingMethodPrefix() string {
 	return h.SigningMethod.Alg()[0:2]
 }
 
+// AuthenticationHandler can be used by clients to authentication and get token.
+// Clients must define the username and password getter and the authenticator.
+// On success, token is stored in http.Request.Context.
 func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -188,6 +213,9 @@ func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 	})
 }
 
+// AuthorizationHandler can be used by clients to authorization token.
+// Clients must set the token to Authorization header. Example: "Authorization:Bearer {SIGNED_TOKEN_STRING}"
+// On succss, token is stored in http.Request.Context.
 func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -214,11 +242,13 @@ var (
 	tokenKey       key = 2
 )
 
+// SignedTokenFromContext is signed token string getter from http.Request.Context.
 func SignedTokenFromContext(ctx context.Context) (string, bool) {
 	val, ok := ctx.Value(signedTokenKey).(string)
 	return val, ok
 }
 
+// TokenFromContext is token instance getter from http.Request.Context.
 func TokenFromContext(ctx context.Context) (*jwt.Token, bool) {
 	val, ok := ctx.Value(tokenKey).(*jwt.Token)
 	return val, ok
