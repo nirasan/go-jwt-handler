@@ -3,10 +3,10 @@ package jwthandler
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -14,6 +14,159 @@ import (
 var (
 	authenticator = func(username, password string) bool { return username == "admin" && password == "admin" }
 )
+
+func TestNew(t *testing.T) {
+
+	var h *JwtHandler
+	var e error
+
+	// minimum Option
+	CacheClear()
+	h, e = New(Option{SigningAlgorithm: "HS256", HmacKey: []byte{1, 2, 3}, Authenticator: authenticator})
+	if h == nil {
+		t.Error("handler must not nil")
+	}
+	if e != nil {
+		t.Error(e)
+	}
+
+	// full Option
+	CacheClear()
+	h, e = New(Option{
+		SigningAlgorithm: "RS512",
+		Timeout:          1 * time.Hour,
+		PrivateKeyPath:   "test/sample_key",
+		PublicKeyPath:    "test/sample_key.pub",
+		LoginDataGetter: func(r *http.Request) (string, string) {
+			return r.Form["username"][0], r.Form["password"][0]
+		},
+		Authenticator: func(username, password string) bool {
+			return username == "admin" && password == "admin"
+		},
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+		},
+	})
+	if h == nil {
+		t.Error("handler must not nil")
+	}
+	if e != nil {
+		t.Error(e)
+	}
+
+	// invalid SigningAlgorithm
+	CacheClear()
+	_, e = New(Option{Authenticator: authenticator})
+	if e.Error() != "invalid signing algorithm" {
+		t.Error("SigningAlgorithm check failed")
+	}
+
+	// invalid Authenticator
+	CacheClear()
+	_, e = New(Option{SigningAlgorithm: "HS256", HmacKey: []byte{1, 2, 3}})
+	if e.Error() != "Authenticator required" {
+		t.Error("Authenticator check failed")
+	}
+
+	// HMAC key is empty
+	CacheClear()
+	_, e = New(Option{SigningAlgorithm: "HS256", Authenticator: authenticator})
+	if e.Error() != "hash key required" {
+		t.Error("HMAC key check failed")
+	}
+
+	// RSA private key is empty
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PublicKeyPath:    "test/sample_key.pub",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("RSA private key check failed")
+	}
+
+	// RSA public key is empty
+	CacheClear()
+	h, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/sample_key",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("RSA public key check failed")
+	}
+
+	// RSA private key is invalid
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/ec256-private.pem",
+		PublicKeyPath:    "test/sample_key.pub",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("RSA private key parse check failed")
+	}
+
+	// RSA public key is invalid
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/sample_key",
+		PublicKeyPath:    "test/ec256-public.pem",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("RSA public key parse check failed")
+	}
+
+	// ECDSA private key is empty
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "ES256",
+		PublicKeyPath:    "test/ec256-public.pem",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("ECDSA private key check failed")
+	}
+
+	// ECDSA public key is empty
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "ES256",
+		PrivateKeyPath:   "test/ec256-private.pem",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("ECDSA public key check failed")
+	}
+
+	// ECDSA private key is invalid
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/ec512-private.pem",
+		PublicKeyPath:    "test/ec256-public.pem",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("ECDSA private key parse check failed")
+	}
+
+	// ECDSA public key is invalid
+	CacheClear()
+	_, e = New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/ec256-private.pem",
+		PublicKeyPath:    "test/ec512-public.pem",
+		Authenticator:    authenticator,
+	})
+	if e == nil {
+		t.Error("ECDSA public key parse check failed")
+	}
+}
 
 func TestJwtHandler_AuthenticationHandler(t *testing.T) {
 	hmacKey, _ := ioutil.ReadFile("test/hmacTestKey")
@@ -34,8 +187,6 @@ func TestJwtHandler_AuthenticationHandler(t *testing.T) {
 	}
 
 	for _, option := range options {
-		log.Println(option)
-
 		h, err := New(option)
 		if err != nil {
 			t.Fatal(err)
@@ -64,7 +215,7 @@ func TestJwtHandler_AuthenticationHandler(t *testing.T) {
 			if len(tokenString) == 0 {
 				t.Error("token is empty")
 			} else {
-				log.Println(string(tokenString))
+				//log.Println(string(tokenString))
 			}
 		}
 
@@ -145,7 +296,7 @@ func TestJwtHandler_AuthorizationHandler(t *testing.T) {
 			} else if string(subject) != "admin" {
 				t.Error("invalid token")
 			} else {
-				log.Println(string(subject))
+				//log.(string(subject))
 			}
 		}
 	}

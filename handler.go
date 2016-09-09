@@ -42,7 +42,7 @@ type JwtHandler struct {
 	Timeout         time.Duration
 	HmacKey         []byte
 	RsaPrivateKey   *rsa.PrivateKey
-	RsaPublickey    *rsa.PublicKey
+	RsaPublicKey    *rsa.PublicKey
 	EcdsaPrivateKey *ecdsa.PrivateKey
 	EcdsaPublicKey  *ecdsa.PublicKey
 	LoginDataGetter LoginDataGetter
@@ -107,16 +107,23 @@ func New(o Option) (*JwtHandler, error) {
 	switch {
 	case h.isHmac():
 		if o.HmacKey == nil {
-			return nil, errors.New("hash key must required")
+			return nil, errors.New("hash key required")
 		}
 		h.HmacKey = o.HmacKey
 	case h.isRsa():
 		if privateKey, ok := rsaPrivateKeyCache[o.PrivateKeyPath]; ok {
 			if publicKey, ok := rsaPublicKeyCache[o.PublicKeyPath]; ok {
 				h.RsaPrivateKey = privateKey
-				h.RsaPublickey = publicKey
+				h.RsaPublicKey = publicKey
 			}
-		} else {
+		}
+		if h.RsaPrivateKey == nil || h.RsaPublicKey == nil {
+			if o.PrivateKeyPath == "" {
+				return nil, errors.New("private key path required")
+			}
+			if o.PublicKeyPath == "" {
+				return nil, errors.New("public key path required")
+			}
 			privateKeyData, e := readFile(o.PrivateKeyPath)
 			if e != nil {
 				return nil, errors.New("private key read error [" + o.PrivateKeyPath + "]: " + e.Error())
@@ -129,12 +136,12 @@ func New(o Option) (*JwtHandler, error) {
 			if e != nil {
 				return nil, errors.New("private key parse error [" + string(o.PrivateKeyPath) + "]: " + e.Error())
 			}
-			h.RsaPublickey, e = jwt.ParseRSAPublicKeyFromPEM(publicKeyData)
+			h.RsaPublicKey, e = jwt.ParseRSAPublicKeyFromPEM(publicKeyData)
 			if e != nil {
 				return nil, errors.New("public key parse error [" + string(o.PublicKeyPath) + "]: " + e.Error())
 			}
 			rsaPrivateKeyCache[o.PrivateKeyPath] = h.RsaPrivateKey
-			rsaPublicKeyCache[o.PublicKeyPath] = h.RsaPublickey
+			rsaPublicKeyCache[o.PublicKeyPath] = h.RsaPublicKey
 		}
 	case h.isEcdsa():
 		if privateKey, ok := ecdsaPrivateKeyCache[o.PrivateKeyPath]; ok {
@@ -142,7 +149,14 @@ func New(o Option) (*JwtHandler, error) {
 				h.EcdsaPrivateKey = privateKey
 				h.EcdsaPublicKey = publicKey
 			}
-		} else {
+		}
+		if h.EcdsaPrivateKey == nil || h.EcdsaPublicKey == nil {
+			if o.PrivateKeyPath == "" {
+				return nil, errors.New("private key path required")
+			}
+			if o.PublicKeyPath == "" {
+				return nil, errors.New("public key path required")
+			}
 			privateKeyData, e := readFile(o.PrivateKeyPath)
 			if e != nil {
 				return nil, errors.New("private key read error [" + o.PrivateKeyPath + "]: " + e.Error())
@@ -167,6 +181,14 @@ func New(o Option) (*JwtHandler, error) {
 	}
 
 	return h, nil
+}
+
+// CacheClear can be used by clients to clear key cache
+func CacheClear() {
+	rsaPrivateKeyCache = make(map[string]*rsa.PrivateKey)
+	rsaPublicKeyCache = make(map[string]*rsa.PublicKey)
+	ecdsaPrivateKeyCache = make(map[string]*ecdsa.PrivateKey)
+	ecdsaPublicKeyCache = make(map[string]*ecdsa.PublicKey)
 }
 
 // isHmac decide algorithm is HMAC SHA or not.
@@ -322,7 +344,7 @@ func (h *JwtHandler) parseToken(r *http.Request) (*jwt.Token, error) {
 		case h.isHmac():
 			return h.HmacKey, nil
 		case h.isRsa():
-			return h.RsaPublickey, nil
+			return h.RsaPublicKey, nil
 		case h.isEcdsa():
 			return h.EcdsaPublicKey, nil
 		default:
