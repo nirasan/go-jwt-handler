@@ -204,6 +204,7 @@ func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 		tokenString, err := h.createSignedToken(h.createToken(username))
 		if err != nil {
 			h.ErrorHandler(w, r, err)
+			return
 		}
 
 		ctx := r.Context()
@@ -222,10 +223,12 @@ func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 		token, err := h.parseToken(r)
 		if err != nil {
 			h.ErrorHandler(w, r, ErrAuthorization)
+			return
 		}
 
 		if _, ok := token.Claims.(jwt.MapClaims); !ok || !token.Valid {
 			h.ErrorHandler(w, r, ErrAuthorization)
+			return
 		}
 
 		ctx := r.Context()
