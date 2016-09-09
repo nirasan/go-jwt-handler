@@ -1,0 +1,477 @@
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+<!--
+	Note: Static (i.e., not template-generated) href and id
+	attributes start with "pkg-" to make it impossible for
+	them to conflict with generated attributes (some of which
+	correspond to Go identifiers).
+-->
+
+	<script type='text/javascript'>
+	document.ANALYSIS_DATA = ;
+	document.CALLGRAPH = ;
+	</script>
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "."</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">Overview</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">Index</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">Subdirectories</a></dd>
+			
+			</dl>
+		</div>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="Click to show Overview section">Overview ▹</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="Click to hide Overview section">Overview ▾</h2>
+				
+			</div>
+		</div>
+		
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Index section">Index ▹</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Index section">Index ▾</h2>
+
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">Variables</a></dd>
+			
+			
+				
+				<dd><a href="#CacheClear">func CacheClear()</a></dd>
+			
+				
+				<dd><a href="#SignedTokenFromContext">func SignedTokenFromContext(ctx context.Context) (string, bool)</a></dd>
+			
+				
+				<dd><a href="#TokenFromContext">func TokenFromContext(ctx context.Context) (*jwt.Token, bool)</a></dd>
+			
+			
+				
+				<dd><a href="#Authenticator">type Authenticator</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ErrorHandler">type ErrorHandler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#JwtHandler">type JwtHandler</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#New">func New(o Option) (*JwtHandler, error)</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#JwtHandler.AuthenticationHandler">func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#JwtHandler.AuthorizationHandler">func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="#JwtHandler.TokenRefreshHandler">func (h *JwtHandler) TokenRefreshHandler(next http.Handler) http.Handler</a></dd>
+				
+			
+				
+				<dd><a href="#LoginDataGetter">type LoginDataGetter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Option">type Option</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div><!-- #manual-nav -->
+
+		
+
+		
+			<h4>Package files</h4>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/target/handler.go">handler.go</a>
+			
+			</span>
+			</p>
+		
+		</div><!-- .expanded -->
+		</div><!-- #pkg-index -->
+
+		<div id="pkg-callgraph" class="toggle" style="display: none">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Internal Call Graph section">Internal call graph ▹</h2>
+		</div> <!-- .expanded -->
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Internal Call Graph section">Internal call graph ▾</h2>
+			<p>
+			  In the call graph viewer below, each node
+			  is a function belonging to this package
+			  and its children are the functions it
+			  calls&mdash;perhaps dynamically.
+			</p>
+			<p>
+			  The root nodes are the entry points of the
+			  package: functions that may be called from
+			  outside the package.
+			  There may be non-exported or anonymous
+			  functions among them if they are called
+			  dynamically from another package.
+			</p>
+			<p>
+			  Click a node to visit that function's source code.
+			  From there you can visit its callers by
+			  clicking its declaring <code>func</code>
+			  token.
+			</p>
+			<p>
+			  Functions may be omitted if they were
+			  determined to be unreachable in the
+			  particular programs or tests that were
+			  analyzed.
+			</p>
+			<!-- Zero means show all package entry points. -->
+			<ul style="margin-left: 0.5in" id="callgraph-0" class="treeview"></ul>
+		</div>
+		</div> <!-- #pkg-callgraph -->
+
+		
+		
+			<h2 id="pkg-variables">Variables</h2>
+			
+				<pre>var (
+    <span class="comment">// ErrAuthentication is Error for Authentication failed.</span>
+    <span id="ErrAuthentication">ErrAuthentication</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;Authentication Error&#34;)
+    <span class="comment">// ErrAuthorization is Error for Authorization failed.</span>
+    <span id="ErrAuthorization">ErrAuthorization</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;Authorization Error&#34;)
+)</pre>
+				
+			
+		
+		
+			
+			
+			<h2 id="CacheClear">func <a href="/src/target/handler.go?s=5835:5852#L177">CacheClear</a>
+				<a class="permalink" href="#CacheClear">&#xb6;</a>
+			</h2>
+			<pre>func CacheClear()</pre>
+			<p>
+CacheClear can be used by clients to clear key cache
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="SignedTokenFromContext">func <a href="/src/target/handler.go?s=9091:9154#L295">SignedTokenFromContext</a>
+				<a class="permalink" href="#SignedTokenFromContext">&#xb6;</a>
+			</h2>
+			<pre>func SignedTokenFromContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>
+SignedTokenFromContext is signed token string getter from http.Request.Context.
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="TokenFromContext">func <a href="/src/target/handler.go?s=9295:9356#L301">TokenFromContext</a>
+				<a class="permalink" href="#TokenFromContext">&#xb6;</a>
+			</h2>
+			<pre>func TokenFromContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (*jwt.<a href="#Token">Token</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>
+TokenFromContext is token instance getter from http.Request.Context.
+</p>
+
+			
+			
+
+		
+		
+			
+			
+			<h2 id="Authenticator">type <a href="/src/target/handler.go?s=841:885#L24">Authenticator</a>
+				<a class="permalink" href="#Authenticator">&#xb6;</a>
+			</h2>
+			<pre>type Authenticator func(<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+Authenticator is user defined function validating username and password
+</p>
+
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="ErrorHandler">type <a href="/src/target/handler.go?s=966:1039#L27">ErrorHandler</a>
+				<a class="permalink" href="#ErrorHandler">&#xb6;</a>
+			</h2>
+			<pre>type ErrorHandler func(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+ErrorHandler is user defined function handling response when error occurred
+</p>
+
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="JwtHandler">type <a href="/src/target/handler.go?s=1081:1425#L30">JwtHandler</a>
+				<a class="permalink" href="#JwtHandler">&#xb6;</a>
+			</h2>
+			<pre>type JwtHandler struct {
+    SigningMethod   jwt.<a href="#SigningMethod">SigningMethod</a>
+    Timeout         <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+    HmacKey         []<a href="/pkg/builtin/#byte">byte</a>
+    RsaPrivateKey   *<a href="/pkg/crypto/rsa/">rsa</a>.<a href="/pkg/crypto/rsa/#PrivateKey">PrivateKey</a>
+    RsaPublicKey    *<a href="/pkg/crypto/rsa/">rsa</a>.<a href="/pkg/crypto/rsa/#PublicKey">PublicKey</a>
+    EcdsaPrivateKey *<a href="/pkg/crypto/ecdsa/">ecdsa</a>.<a href="/pkg/crypto/ecdsa/#PrivateKey">PrivateKey</a>
+    EcdsaPublicKey  *<a href="/pkg/crypto/ecdsa/">ecdsa</a>.<a href="/pkg/crypto/ecdsa/#PublicKey">PublicKey</a>
+    LoginDataGetter <a href="#LoginDataGetter">LoginDataGetter</a>
+    Authenticator   <a href="#Authenticator">Authenticator</a>
+    ErrorHandler    <a href="#ErrorHandler">ErrorHandler</a>
+}</pre>
+			<p>
+JwtHandler is JSON Web Token handler
+</p>
+
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="New">func <a href="/src/target/handler.go?s=2320:2359#L66">New</a>
+					<a class="permalink" href="#New">&#xb6;</a>
+				</h3>
+				<pre>func New(o <a href="#Option">Option</a>) (*<a href="#JwtHandler">JwtHandler</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+New is JwtHandler Constructor.
+</p>
+
+				
+				
+			
+
+			
+				
+				<h3 id="JwtHandler.AuthenticationHandler">func (*JwtHandler) <a href="/src/target/handler.go?s=6809:6883#L206">AuthenticationHandler</a>
+					<a class="permalink" href="#JwtHandler.AuthenticationHandler">&#xb6;</a>
+				</h3>
+				<pre>func (h *<a href="#JwtHandler">JwtHandler</a>) AuthenticationHandler(next <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+				<p>
+AuthenticationHandler can be used by clients to authentication and get token.
+Clients must define the username and password getter and the authenticator.
+On success, token is stored in http.Request.Context.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="JwtHandler.AuthorizationHandler">func (*JwtHandler) <a href="/src/target/handler.go?s=7596:7669#L232">AuthorizationHandler</a>
+					<a class="permalink" href="#JwtHandler.AuthorizationHandler">&#xb6;</a>
+				</h3>
+				<pre>func (h *<a href="#JwtHandler">JwtHandler</a>) AuthorizationHandler(next <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+				<p>
+AuthorizationHandler can be used by clients to authorization token.
+Clients must set the token to Authorization header. Example: &#34;Authorization:Bearer {SIGNED_TOKEN_STRING}&#34;
+On succss, token is stored in http.Request.Context.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="JwtHandler.TokenRefreshHandler">func (*JwtHandler) <a href="/src/target/handler.go?s=8247:8319#L255">TokenRefreshHandler</a>
+					<a class="permalink" href="#JwtHandler.TokenRefreshHandler">&#xb6;</a>
+				</h3>
+				<pre>func (h *<a href="#JwtHandler">JwtHandler</a>) TokenRefreshHandler(next <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+				<p>
+TokenRefreshHandler can be used by clients to refresh token expire time.
+On success, new token is signed token string is stored in http.Request.Context.
+</p>
+
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="LoginDataGetter">type <a href="/src/target/handler.go?s=705:764#L21">LoginDataGetter</a>
+				<a class="permalink" href="#LoginDataGetter">&#xb6;</a>
+			</h2>
+			<pre>type LoginDataGetter func(r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>
+LoginDataGetter is user defined function getting username and password
+</p>
+
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="Option">type <a href="/src/target/handler.go?s=1470:2284#L44">Option</a>
+				<a class="permalink" href="#Option">&#xb6;</a>
+			</h2>
+			<pre>type Option struct {
+    <span class="comment">// signing algorithm.</span>
+    <span class="comment">// possible values are HS256, HS384, HS512, RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512.</span>
+    SigningAlgorithm <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// Duration that a jwt token is valid. Optional, defaults to one hour.</span>
+    Timeout <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+    <span class="comment">// key for HMAC SHA algorithm.</span>
+    HmacKey []<a href="/pkg/builtin/#byte">byte</a>
+    <span class="comment">// private key file path for RSA, RSA-PSS, ECDSA algorithm.</span>
+    PrivateKeyPath <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// public key file path for RSA, RSA-PSS, ECDSA algorithm.</span>
+    PublicKeyPath <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// callback function username and password getter.</span>
+    LoginDataGetter <a href="#LoginDataGetter">LoginDataGetter</a>
+    <span class="comment">// callback function username and password validator.</span>
+    <span class="comment">// return true if username and password is valid, and return false if invalid.</span>
+    Authenticator <a href="#Authenticator">Authenticator</a>
+    <span class="comment">// callback function when error occurred handler.</span>
+    ErrorHandler <a href="#ErrorHandler">ErrorHandler</a>
+}</pre>
+			<p>
+Option is JwtHandler constructor option
+</p>
+
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">Subdirectories</h2>
+	
+	
+
+
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">Name</th>
+				<th class="pkg-synopsis">Synopsis</th>
+			</tr>
+
+			
+			<tr>
+				<td colspan="2"><a href="..">..</a></td>
+			</tr>
+			
+
+			
+				
+					<tr>
+						<td class="pkg-name" style="padding-left: 0px;">
+							<a href="public/">public</a>
+						</td>
+						<td class="pkg-synopsis">
+							
+						</td>
+					</tr>
+				
+			
+				
+					<tr>
+						<td class="pkg-name" style="padding-left: 0px;">
+							<a href="test/">test</a>
+						</td>
+						<td class="pkg-synopsis">
+							
+						</td>
+					</tr>
+				
+			
+		</table>
+	</div>
+
+
+	
+
