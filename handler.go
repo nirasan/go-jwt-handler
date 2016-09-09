@@ -260,6 +260,40 @@ func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 	})
 }
 
+// TokenRefreshHandler can be used by clients to refresh token expire time.
+// On success, new token is signed token string is stored in http.Request.Context.
+func (h *JwtHandler) TokenRefreshHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		token, err := h.parseToken(r)
+
+		if err != nil {
+			h.ErrorHandler(w, r, ErrAuthorization)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			h.ErrorHandler(w, r, ErrAuthorization)
+			return
+		}
+
+		sub := claims["sub"].(string)
+
+		newToken := h.createToken(sub)
+		tokenString, err := h.createSignedToken(newToken)
+		if err != nil {
+			h.ErrorHandler(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+		r = r.WithContext(context.WithValue(ctx, signedTokenKey, tokenString))
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 type key int
 
 var (

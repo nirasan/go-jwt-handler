@@ -3,6 +3,7 @@ package jwthandler
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -300,4 +301,51 @@ func TestJwtHandler_AuthorizationHandler(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestJwtHandler_TokenRefreshHandler(t *testing.T) {
+
+	h, err := New(Option{
+		SigningAlgorithm: "RS256",
+		PrivateKeyPath:   "test/sample_key",
+		PublicKeyPath:    "test/sample_key.pub",
+		Authenticator:    authenticator,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := httptest.NewServer(h.TokenRefreshHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, ok := SignedTokenFromContext(r.Context())
+		if !ok {
+			t.Fatal("Signed token is not exist.")
+		}
+		fmt.Fprint(w, token)
+	})))
+	defer ts.Close()
+
+	beforeToken := h.createToken("admin")
+	beforeTokenString, _ := h.createSignedToken(beforeToken)
+
+	time.Sleep(1 * time.Second)
+
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+	req.Header.Set("Authorization", "Bearer "+beforeTokenString)
+
+	res, err := new(http.Client).Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	afterTokenString, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if beforeTokenString == string(afterTokenString) {
+		t.Error("token is not refreshed")
+	}
+	log.Println("before: ", beforeTokenString)
+	log.Println("after : ", string(afterTokenString))
 }
