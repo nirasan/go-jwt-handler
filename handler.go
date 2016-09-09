@@ -105,12 +105,12 @@ func New(o Option) (*JwtHandler, error) {
 	}
 
 	switch {
-	case h.IsHmac():
+	case h.isHmac():
 		if o.HmacKey == nil {
 			return nil, errors.New("hash key must required")
 		}
 		h.HmacKey = o.HmacKey
-	case h.IsRsa():
+	case h.isRsa():
 		if privateKey, ok := rsaPrivateKeyCache[o.PrivateKeyPath]; ok {
 			if publicKey, ok := rsaPublicKeyCache[o.PublicKeyPath]; ok {
 				h.RsaPrivateKey = privateKey
@@ -136,7 +136,7 @@ func New(o Option) (*JwtHandler, error) {
 			rsaPrivateKeyCache[o.PrivateKeyPath] = h.RsaPrivateKey
 			rsaPublicKeyCache[o.PublicKeyPath] = h.RsaPublickey
 		}
-	case h.IsEcdsa():
+	case h.isEcdsa():
 		if privateKey, ok := ecdsaPrivateKeyCache[o.PrivateKeyPath]; ok {
 			if publicKey, ok := ecdsaPublicKeyCache[o.PublicKeyPath]; ok {
 				h.EcdsaPrivateKey = privateKey
@@ -169,18 +169,18 @@ func New(o Option) (*JwtHandler, error) {
 	return h, nil
 }
 
-// IsHmac decide algorithm is HMAC SHA or not.
-func (h *JwtHandler) IsHmac() bool {
+// isHmac decide algorithm is HMAC SHA or not.
+func (h *JwtHandler) isHmac() bool {
 	return h.signingMethodPrefix() == "HS"
 }
 
-// IsRsa decide algorithm is (RSA || RSA-PSS) or not.
-func (h *JwtHandler) IsRsa() bool {
+// isRsa decide algorithm is (RSA || RSA-PSS) or not.
+func (h *JwtHandler) isRsa() bool {
 	return h.signingMethodPrefix() == "RS" || h.signingMethodPrefix() == "PS"
 }
 
-// IsEcdsa decide algorithm is ECDSA or not.
-func (h *JwtHandler) IsEcdsa() bool {
+// isEcdsa decide algorithm is ECDSA or not.
+func (h *JwtHandler) isEcdsa() bool {
 	return h.signingMethodPrefix() == "ES"
 }
 
@@ -279,11 +279,11 @@ func (h *JwtHandler) createSignedToken(token *jwt.Token) (string, error) {
 
 	var key interface{}
 	switch {
-	case h.IsHmac():
+	case h.isHmac():
 		key = h.HmacKey
-	case h.IsRsa():
+	case h.isRsa():
 		key = h.RsaPrivateKey
-	case h.IsEcdsa():
+	case h.isEcdsa():
 		key = h.EcdsaPrivateKey
 	}
 
@@ -316,11 +316,11 @@ func (h *JwtHandler) parseToken(r *http.Request) (*jwt.Token, error) {
 			return nil, errors.New("Invalid signing algorithm")
 		}
 		switch {
-		case h.IsHmac():
+		case h.isHmac():
 			return h.HmacKey, nil
-		case h.IsRsa():
+		case h.isRsa():
 			return h.RsaPublickey, nil
-		case h.IsEcdsa():
+		case h.isEcdsa():
 			return h.EcdsaPublicKey, nil
 		default:
 			return nil, errors.New("Invalid signing algorithm")
