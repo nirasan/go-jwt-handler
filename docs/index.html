@@ -1,3 +1,5 @@
+use 'godoc cmd/github.com/nirasan/go-jwt-handler' for documentation on the github.com/nirasan/go-jwt-handler command 
+
 <!--
 	Copyright 2009 The Go Authors. All rights reserved.
 	Use of this source code is governed by a BSD-style
@@ -19,11 +21,13 @@
 		
 		<div id="short-nav">
 			<dl>
-			<dd><code>import "."</code></dd>
+			<dd><code>import "github.com/nirasan/go-jwt-handler"</code></dd>
 			</dl>
 			<dl>
 			<dd><a href="#pkg-overview" class="overviewLink">Overview</a></dd>
 			<dd><a href="#pkg-index" class="indexLink">Index</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">Examples</a></dd>
 			
 			
 				<dd><a href="#pkg-subdirectories">Subdirectories</a></dd>
@@ -62,6 +66,9 @@
 			
 				
 				<dd><a href="#SignedTokenFromContext">func SignedTokenFromContext(ctx context.Context) (string, bool)</a></dd>
+			
+				
+				<dd><a href="#SubjectFromToken">func SubjectFromToken(token *jwt.Token) (string, bool)</a></dd>
 			
 				
 				<dd><a href="#TokenFromContext">func TokenFromContext(ctx context.Context) (*jwt.Token, bool)</a></dd>
@@ -109,13 +116,34 @@
 			</div><!-- #manual-nav -->
 
 		
+		<div id="pkg-examples">
+			<h4>Examples</h4>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_JwtHandler_AuthenticationHandler">JwtHandler.AuthenticationHandler</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_JwtHandler_AuthorizationHandler">JwtHandler.AuthorizationHandler</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_JwtHandler_TokenRefreshHandler">JwtHandler.TokenRefreshHandler</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_ecdsa">New (Ecdsa)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_hmac">New (Hmac)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_rsa">New (Rsa)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_rsapss">New (Rsapss)</a></dd>
+			
+			</dl>
+		</div>
+		
 
 		
 			<h4>Package files</h4>
 			<p>
 			<span style="font-size:90%">
 			
-				<a href="/src/target/handler.go">handler.go</a>
+				<a href="/src/github.com/nirasan/go-jwt-handler/handler.go">handler.go</a>
 			
 			</span>
 			</p>
@@ -196,6 +224,20 @@ CacheClear can be used by clients to clear key cache
 			<pre>func SignedTokenFromContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
 			<p>
 SignedTokenFromContext is signed token string getter from http.Request.Context.
+</p>
+
+			
+			
+
+		
+			
+			
+			<h2 id="SubjectFromToken">func <a href="/src/target/handler.go?s=9466:9520#L307">SubjectFromToken</a>
+				<a class="permalink" href="#SubjectFromToken">&#xb6;</a>
+			</h2>
+			<pre>func SubjectFromToken(token *jwt.<a href="#Token">Token</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>
+SubjectFromToken returns claims subject
 </p>
 
 			
@@ -303,7 +345,122 @@ JwtHandler is JSON Web Token handler
 New is JwtHandler Constructor.
 </p>
 
-				
+				<div id="example_New_ecdsa" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example (Ecdsa)</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example (Ecdsa)</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code">h, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;ES256&#34;,
+    PrivateKeyPath:   &#34;test/ec256-private.pem&#34;,
+    PublicKeyPath:    &#34;test/ec256-public.pem&#34;,
+    Authenticator:    func(u, p string) bool { return u == &#34;admin&#34; &amp;&amp; p == &#34;pass&#34; },
+})
+if e != nil {
+    log.Fatal(e)
+}
+fmt.Printf(&#34;%T, %s&#34;, h, h.SigningMethod.Alg())
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">*jwthandler.JwtHandler, ES256
+</pre>
+			
+		
+	</div>
+</div>
+<div id="example_New_hmac" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example (Hmac)</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example (Hmac)</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code">h, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;HS256&#34;,
+    HmacKey:          []byte(&#34;KEY_STRING&#34;),
+    Authenticator:    func(u, p string) bool { return u == &#34;admin&#34; &amp;&amp; p == &#34;pass&#34; },
+})
+if e != nil {
+    log.Fatal(e)
+}
+fmt.Printf(&#34;%T, %s&#34;, h, h.SigningMethod.Alg())
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">*jwthandler.JwtHandler, HS256
+</pre>
+			
+		
+	</div>
+</div>
+<div id="example_New_rsa" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example (Rsa)</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example (Rsa)</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code">h, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;RS256&#34;,
+    PrivateKeyPath:   &#34;test/sample_key&#34;,
+    PublicKeyPath:    &#34;test/sample_key.pub&#34;,
+    Authenticator:    func(u, p string) bool { return u == &#34;admin&#34; &amp;&amp; p == &#34;pass&#34; },
+})
+if e != nil {
+    log.Fatal(e)
+}
+fmt.Printf(&#34;%T, %s&#34;, h, h.SigningMethod.Alg())
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">*jwthandler.JwtHandler, RS256
+</pre>
+			
+		
+	</div>
+</div>
+<div id="example_New_rsapss" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example (Rsapss)</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example (Rsapss)</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code">h, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;PS256&#34;,
+    PrivateKeyPath:   &#34;test/sample_key&#34;,
+    PublicKeyPath:    &#34;test/sample_key.pub&#34;,
+    Authenticator:    func(u, p string) bool { return u == &#34;admin&#34; &amp;&amp; p == &#34;pass&#34; },
+})
+if e != nil {
+    log.Fatal(e)
+}
+fmt.Printf(&#34;%T, %s&#34;, h, h.SigningMethod.Alg())
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">*jwthandler.JwtHandler, PS256
+</pre>
+			
+		
+	</div>
+</div>
+
 				
 			
 
@@ -320,7 +477,65 @@ On success, token is stored in http.Request.Context.
 </p>
 
 				
-				
+				<div id="example_JwtHandler_AuthenticationHandler" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code"><span class="comment">// create JwtHandler</span>
+jwth, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;HS256&#34;,
+    HmacKey:          []byte(&#34;KEY_STRING&#34;),
+    Authenticator: func(u, p string) bool {
+        return u == &#34;user&#34; &amp;&amp; p == &#34;pass&#34;
+    },
+    LoginDataGetter: func(r *http.Request) (string, string) {
+        return r.FormValue(&#34;username&#34;), r.FormValue(&#34;password&#34;)
+    },
+})
+if e != nil {
+    log.Fatal(e)
+}
+
+<span class="comment">// create http.Handler</span>
+h := jwth.AuthenticationHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+    <span class="comment">// get signed token string</span>
+    token, ok := jwthandler.SignedTokenFromContext(r.Context())
+
+    <span class="comment">// and response</span>
+    if ok {
+        fmt.Fprint(w, token)
+    } else {
+        http.Error(w, &#34;&#34;, http.StatusUnauthorized)
+    }
+}))
+
+<span class="comment">// emulate server</span>
+ts := httptest.NewServer(h)
+defer ts.Close()
+
+<span class="comment">// emulate client</span>
+res, _ := http.PostForm(ts.URL, url.Values{&#34;username&#34;: {&#34;user&#34;}, &#34;password&#34;: {&#34;pass&#34;}})
+body, _ := ioutil.ReadAll(res.Body)
+defer res.Body.Close()
+
+fmt.Println(res.StatusCode, len(body))
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">200 123
+</pre>
+			
+		
+	</div>
+</div>
+
 				
 			
 				
@@ -335,7 +550,76 @@ On succss, token is stored in http.Request.Context.
 </p>
 
 				
-				
+				<div id="example_JwtHandler_AuthorizationHandler" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code"><span class="comment">// create JwtHandler</span>
+jwth, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;HS256&#34;,
+    HmacKey:          []byte(&#34;KEY_STRING&#34;),
+    Authenticator: func(u, p string) bool {
+        return u == &#34;user&#34; &amp;&amp; p == &#34;pass&#34;
+    },
+    LoginDataGetter: func(r *http.Request) (string, string) {
+        return r.FormValue(&#34;username&#34;), r.FormValue(&#34;password&#34;)
+    },
+})
+if e != nil {
+    log.Fatal(e)
+}
+
+<span class="comment">// create http.Handler</span>
+h := jwth.AuthorizationHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+    <span class="comment">// get token object</span>
+    token, ok := jwthandler.TokenFromContext(r.Context())
+    if !ok {
+        http.Error(w, &#34;&#34;, http.StatusUnauthorized)
+    }
+
+    <span class="comment">// get username</span>
+    username, ok := jwthandler.SubjectFromToken(token)
+
+    <span class="comment">// reaponse</span>
+    fmt.Fprint(w, &#34;Hello &#34;+username)
+}))
+
+<span class="comment">// generate token (normally AuthenticationHander generated)</span>
+username := &#34;user&#34;
+token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{&#34;sub&#34;: username}).SignedString(jwth.HmacKey)
+
+<span class="comment">// emulate server</span>
+ts := httptest.NewServer(h)
+defer ts.Close()
+
+<span class="comment">// emulate client</span>
+client := &amp;http.Client{}
+data := url.Values{&#34;username&#34;: {username}, &#34;password&#34;: {&#34;pass&#34;}}
+req, _ := http.NewRequest(&#34;POST&#34;, ts.URL, strings.NewReader(data.Encode()))
+req.Header.Set(&#34;Content-Type&#34;, &#34;application/x-www-form-urlencoded&#34;)
+req.Header.Set(&#34;Authorization&#34;, &#34;Bearer &#34;+token)
+res, _ := client.Do(req)
+body, _ := ioutil.ReadAll(res.Body)
+defer res.Body.Close()
+
+fmt.Printf(&#34;%d %s&#34;, res.StatusCode, string(body))
+<span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">200 Hello user
+</pre>
+			
+		
+	</div>
+</div>
+
 				
 			
 				
@@ -349,7 +633,76 @@ On success, new token is signed token string is stored in http.Request.Context.
 </p>
 
 				
-				
+				<div id="example_JwtHandler_TokenRefreshHandler" class="toggle">
+	<div class="collapsed">
+		<p class="exampleHeading toggleButton">▹ <span class="text">Example</span></p>
+	</div>
+	<div class="expanded">
+		<p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+		
+		
+		
+			<p>Code:</p>
+			<pre class="code"><span class="comment">// create JwtHandler</span>
+jwth, e := jwthandler.New(jwthandler.Option{
+    SigningAlgorithm: &#34;HS256&#34;,
+    HmacKey:          []byte(&#34;KEY_STRING&#34;),
+    Authenticator: func(u, p string) bool {
+        return u == &#34;user&#34; &amp;&amp; p == &#34;pass&#34;
+    },
+    LoginDataGetter: func(r *http.Request) (string, string) {
+        return r.FormValue(&#34;username&#34;), r.FormValue(&#34;password&#34;)
+    },
+})
+if e != nil {
+    log.Fatal(e)
+}
+
+<span class="comment">// create http.Handler</span>
+h := jwth.TokenRefreshHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+    <span class="comment">// get refreshed token string</span>
+    token, ok := jwthandler.SignedTokenFromContext(r.Context())
+
+    <span class="comment">// and response</span>
+    if ok {
+        fmt.Fprint(w, token)
+    } else {
+        http.Error(w, &#34;&#34;, http.StatusUnauthorized)
+    }
+}))
+
+<span class="comment">// generate token (normally AuthenticationHander generated)</span>
+username := &#34;user&#34;
+token, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{&#34;sub&#34;: username}).SignedString(jwth.HmacKey)
+
+<span class="comment">// emulate server</span>
+ts := httptest.NewServer(h)
+defer ts.Close()
+
+<span class="comment">// emulate client</span>
+client := &amp;http.Client{}
+data := url.Values{&#34;username&#34;: {username}, &#34;password&#34;: {&#34;pass&#34;}}
+req, _ := http.NewRequest(&#34;POST&#34;, ts.URL, strings.NewReader(data.Encode()))
+req.Header.Set(&#34;Content-Type&#34;, &#34;application/x-www-form-urlencoded&#34;)
+req.Header.Set(&#34;Authorization&#34;, &#34;Bearer &#34;+token)
+res, _ := client.Do(req)
+body, _ := ioutil.ReadAll(res.Body)
+defer res.Body.Close()
+
+newToken := string(body)
+if res.StatusCode == 200 &amp;&amp; newToken != token {
+    fmt.Print(&#34;success&#34;)
+    <span class="comment"></pre>
+			
+			<p>Output:</p>
+			<pre class="output">success
+</pre>
+			
+		
+	</div>
+</div>
+
 				
 			
 		
@@ -450,7 +803,7 @@ Option is JwtHandler constructor option
 				
 					<tr>
 						<td class="pkg-name" style="padding-left: 0px;">
-							<a href="public/">public</a>
+							<a href="docs/">docs</a>
 						</td>
 						<td class="pkg-synopsis">
 							
