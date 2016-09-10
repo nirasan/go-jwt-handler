@@ -313,6 +313,14 @@ func TokenFromContext(ctx context.Context) (*jwt.Token, bool) {
 	return val, ok
 }
 
+// SubjectFromToken returns claims subject
+func SubjectFromToken(token *jwt.Token) (string, bool) {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims["sub"].(string), true
+	}
+	return "", false
+}
+
 func readFile(path string) ([]byte, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

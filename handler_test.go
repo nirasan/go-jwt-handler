@@ -3,7 +3,6 @@ package jwthandler
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -346,6 +345,4 @@ func TestJwtHandler_TokenRefreshHandler(t *testing.T) {
 	if beforeTokenString == string(afterTokenString) {
 		t.Error("token is not refreshed")
 	}
-	log.Println("before: ", beforeTokenString)
-	log.Println("after : ", string(afterTokenString))
 }
