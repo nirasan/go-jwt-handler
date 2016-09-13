@@ -38,38 +38,50 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
 // JwtHandler is JSON Web Token handler
 type JwtHandler struct {
-	SigningMethod   jwt.SigningMethod
-	Timeout         time.Duration
-	HmacKey         []byte
-	RsaPrivateKey   *rsa.PrivateKey
-	RsaPublicKey    *rsa.PublicKey
-	EcdsaPrivateKey *ecdsa.PrivateKey
-	EcdsaPublicKey  *ecdsa.PublicKey
-	LoginDataGetter LoginDataGetter
-	Authenticator   Authenticator
-	ErrorHandler    ErrorHandler
+	SigningMethod     jwt.SigningMethod
+	Timeout           time.Duration
+	HmacKey           []byte
+	RsaPrivateKey     *rsa.PrivateKey
+	RsaPublicKey      *rsa.PublicKey
+	EcdsaPrivateKey   *ecdsa.PrivateKey
+	EcdsaPublicKey    *ecdsa.PublicKey
+	LoginDataGetter   LoginDataGetter
+	Authenticator     Authenticator
+	ErrorHandler      ErrorHandler
+	EnableCachingKeys bool
 }
 
 // Option is JwtHandler constructor option
 type Option struct {
 	// signing algorithm.
 	// possible values are HS256, HS384, HS512, RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512.
+	// [Required]
 	SigningAlgorithm string
-	// Duration that a jwt token is valid. Optional, defaults to one hour.
+	// Duration that a jwt token is valid.
+	// [Optional][Default: one hour]
 	Timeout time.Duration
 	// key for HMAC SHA algorithm.
+	// [Required if SigningAlgorithm is HMAC SHA]
 	HmacKey []byte
 	// private key file path for RSA, RSA-PSS, ECDSA algorithm.
+	// [Required if SigningAlgorithm is RSA or RSA-PSS or ECDSA]
 	PrivateKeyPath string
 	// public key file path for RSA, RSA-PSS, ECDSA algorithm.
+	// [Required if SigningAlgorithm is RSA or RSA-PSS or ECDSA]
 	PublicKeyPath string
 	// callback function username and password getter.
+	// [Optional][Default: loginDataGetter]
 	LoginDataGetter LoginDataGetter
 	// callback function username and password validator.
 	// return true if username and password is valid, and return false if invalid.
+	// [Required]
 	Authenticator Authenticator
 	// callback function when error occurred handler.
+	// [Optional][Default: errorHandler]
 	ErrorHandler ErrorHandler
+	// Enable caching keys or not.
+	// [Optional][Default: false]
+	EnableCachingKeys bool
 }
 
 // New is JwtHandler Constructor.
@@ -85,11 +97,12 @@ func New(o Option) (*JwtHandler, error) {
 	}
 
 	h := &JwtHandler{
-		SigningMethod:   method,
-		Timeout:         o.Timeout,
-		ErrorHandler:    o.ErrorHandler,
-		LoginDataGetter: o.LoginDataGetter,
-		Authenticator:   o.Authenticator,
+		SigningMethod:     method,
+		Timeout:           o.Timeout,
+		ErrorHandler:      o.ErrorHandler,
+		LoginDataGetter:   o.LoginDataGetter,
+		Authenticator:     o.Authenticator,
+		EnableCachingKeys: o.EnableCachingKeys,
 	}
 
 	if h.LoginDataGetter == nil {
@@ -111,10 +124,12 @@ func New(o Option) (*JwtHandler, error) {
 		}
 		h.HmacKey = o.HmacKey
 	case h.isRsa():
-		if privateKey, ok := rsaPrivateKeyCache[o.PrivateKeyPath]; ok {
-			if publicKey, ok := rsaPublicKeyCache[o.PublicKeyPath]; ok {
-				h.RsaPrivateKey = privateKey
-				h.RsaPublicKey = publicKey
+		if h.EnableCachingKeys {
+			if privateKey, ok := rsaPrivateKeyCache[o.PrivateKeyPath]; ok {
+				if publicKey, ok := rsaPublicKeyCache[o.PublicKeyPath]; ok {
+					h.RsaPrivateKey = privateKey
+					h.RsaPublicKey = publicKey
+				}
 			}
 		}
 		if h.RsaPrivateKey == nil || h.RsaPublicKey == nil {
@@ -144,10 +159,12 @@ func New(o Option) (*JwtHandler, error) {
 			rsaPublicKeyCache[o.PublicKeyPath] = h.RsaPublicKey
 		}
 	case h.isEcdsa():
-		if privateKey, ok := ecdsaPrivateKeyCache[o.PrivateKeyPath]; ok {
-			if publicKey, ok := ecdsaPublicKeyCache[o.PublicKeyPath]; ok {
-				h.EcdsaPrivateKey = privateKey
-				h.EcdsaPublicKey = publicKey
+		if h.EnableCachingKeys {
+			if privateKey, ok := ecdsaPrivateKeyCache[o.PrivateKeyPath]; ok {
+				if publicKey, ok := ecdsaPublicKeyCache[o.PublicKeyPath]; ok {
+					h.EcdsaPrivateKey = privateKey
+					h.EcdsaPublicKey = publicKey
+				}
 			}
 		}
 		if h.EcdsaPrivateKey == nil || h.EcdsaPublicKey == nil {
