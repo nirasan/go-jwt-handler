@@ -16,4 +16,6 @@ go get github.com/nirasan/go-jwt-handler
 * Authentication and authorization and token refresh http.Handler
 * Delivery signed token and authenticated token to clients using http.Request.Context.
 
-## Example
+## Examples
+* [Package examples](https://nirasan.github.io/go-jwt-handler/#pkg-examples)
+* [Example application](https://github.com/nirasan/go-jwt-handler/tree/master/examples)
