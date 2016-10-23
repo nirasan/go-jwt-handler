@@ -133,6 +133,7 @@ func ExampleJwtHandler_AuthorizationHandler() {
 		token, ok := jwthandler.TokenFromContext(r.Context())
 		if !ok {
 			http.Error(w, "", http.StatusUnauthorized)
+			return
 		}
 
 		// get username

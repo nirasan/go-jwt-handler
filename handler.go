@@ -33,6 +33,9 @@ type LoginDataGetter func(r *http.Request) (string, string)
 // Authenticator is user defined function validating username and password
 type Authenticator func(string, string) bool
 
+// ContextSetter is function setting token to context
+type ContextSetter func(*http.Request, interface{}, interface{})
+
 // ErrorHandler is user defined function handling response when error occurred
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 
@@ -47,6 +50,7 @@ type JwtHandler struct {
 	EcdsaPublicKey    *ecdsa.PublicKey
 	LoginDataGetter   LoginDataGetter
 	Authenticator     Authenticator
+	ContextSetter     ContextSetter
 	ErrorHandler      ErrorHandler
 	EnableCachingKeys bool
 }
@@ -76,6 +80,9 @@ type Option struct {
 	// return true if username and password is valid, and return false if invalid.
 	// [Required]
 	Authenticator Authenticator
+	// callback function setting token to context
+	// [Optional][Default: contextSetter]
+	ContextSetter ContextSetter
 	// callback function when error occurred handler.
 	// [Optional][Default: errorHandler]
 	ErrorHandler ErrorHandler
@@ -102,11 +109,16 @@ func New(o Option) (*JwtHandler, error) {
 		ErrorHandler:      o.ErrorHandler,
 		LoginDataGetter:   o.LoginDataGetter,
 		Authenticator:     o.Authenticator,
+		ContextSetter:     o.ContextSetter,
 		EnableCachingKeys: o.EnableCachingKeys,
 	}
 
 	if h.LoginDataGetter == nil {
 		h.LoginDataGetter = loginDataGetter
+	}
+
+	if h.ContextSetter == nil {
+		h.ContextSetter = contextSetter
 	}
 
 	if h.ErrorHandler == nil {
@@ -246,8 +258,7 @@ func (h *JwtHandler) AuthenticationHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := r.Context()
-		r = r.WithContext(context.WithValue(ctx, signedTokenKey, tokenString))
+		h.ContextSetter(r, signedTokenKey, tokenString)
 
 		next.ServeHTTP(w, r)
 	})
@@ -270,8 +281,7 @@ func (h *JwtHandler) AuthorizationHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := r.Context()
-		r = r.WithContext(context.WithValue(ctx, tokenKey, token))
+		h.ContextSetter(r, tokenKey, token)
 
 		next.ServeHTTP(w, r)
 	})
@@ -304,8 +314,7 @@ func (h *JwtHandler) TokenRefreshHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := r.Context()
-		r = r.WithContext(context.WithValue(ctx, signedTokenKey, tokenString))
+		h.ContextSetter(r, signedTokenKey, tokenString)
 
 		next.ServeHTTP(w, r)
 	})
@@ -410,4 +419,9 @@ func (h *JwtHandler) parseToken(r *http.Request) (*jwt.Token, error) {
 			return nil, errors.New("Invalid signing algorithm")
 		}
 	})
+}
+
+func contextSetter(r *http.Request, key interface{}, value interface{}) {
+	ctx := r.Context()
+	*r = *(r.WithContext(context.WithValue(ctx, key, value)))
 }
